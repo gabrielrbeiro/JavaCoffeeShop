@@ -20,9 +20,20 @@ public class SearchRepository {
 
     public List<Product> searchProduct (String input) {
         var lowerInput = input.toLowerCase(Locale.ROOT);
-        String query = "Select * from Product where lower(description) like '%" + lowerInput + "%' OR lower(product_name) like '%" + lowerInput + "%'";
-        var resultList = (List<Product>) em.createNativeQuery(query, Product.class).getResultList();
-        return resultList;
+        final var cb = em.getCriteriaBuilder();
+        final var cq = cb.createQuery(Product.class);
+        final var root = cq.from(Product.class);
+        cq.select(root);
+
+        cq.where(
+                cb.or(
+                        cb.like(cb.lower(root.get("description")), "%" + lowerInput + "%"),
+                        cb.like(cb.lower(root.get("productName")), "%" + lowerInput + "%" )
+                )
+        );
+
+        return em.createQuery(cq).getResultList();
+
     }
 
 }
